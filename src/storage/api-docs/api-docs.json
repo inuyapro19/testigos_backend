@@ -1,0 +1,3297 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Testigos API",
+        "description": "API para plataforma de crowdfunding legal - Conecta víctimas, abogados e inversores para financiar casos legales",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080/api",
+            "description": "Servidor de desarrollo"
+        }
+    ],
+    "paths": {
+        "/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Registrar nuevo usuario",
+                "operationId": "ae080748cc99677d23864286c29e1aa3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario registrado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Iniciar sesión",
+                "operationId": "e008da77d61992c2744ddcc00e04009a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Inicio de sesión exitoso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuthResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciales inválidas"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Cerrar sesión",
+                "operationId": "bcf20870c8aece6d32127ddf8f03774d",
+                "responses": {
+                    "200": {
+                        "description": "Sesión cerrada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Obtener usuario autenticado",
+                "operationId": "2dd78761457344f5300eec8d36f7eb06",
+                "responses": {
+                    "200": {
+                        "description": "Usuario autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cases": {
+            "get": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Listar casos",
+                "operationId": "f83d76f004e0ca9f60448a02bc9e7dbd",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "Filtrar por categoría",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de casos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CaseList"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Crear nuevo caso",
+                "operationId": "34de6758cd508fc01f8dbab8b3399e32",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCaseRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Caso creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Case"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cases/{id}": {
+            "get": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Obtener detalles de un caso",
+                "operationId": "c6b78d4ceacff3b256c07e796f847515",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del caso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Case"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Caso no encontrado"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Actualizar caso",
+                "operationId": "68c8837fdd8eaad630769d3d535dcdde",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateCaseRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Caso actualizado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Case"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Caso no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Eliminar caso",
+                "operationId": "2c10dd2f14d5cfba4a4c609aa83d355e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Caso eliminado exitosamente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Caso no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cases/{id}/assign-lawyer": {
+            "post": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Asignar abogado a un caso",
+                "operationId": "d1d7c4474eb2dc7f6d7364a5d66036f5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Abogado asignado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Case"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El caso no está disponible para asignación"
+                    },
+                    "403": {
+                        "description": "Solo abogados pueden asignarse a casos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cases/{id}/evaluate": {
+            "post": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Evaluar caso (aprobar o rechazar)",
+                "operationId": "9f291652ad8f103176ba77a0cce05653",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "action"
+                                ],
+                                "properties": {
+                                    "action": {
+                                        "type": "string",
+                                        "enum": [
+                                            "approve",
+                                            "reject"
+                                        ],
+                                        "example": "approve"
+                                    },
+                                    "legal_analysis": {
+                                        "type": "string",
+                                        "example": "El caso tiene alta probabilidad de éxito..."
+                                    },
+                                    "success_rate": {
+                                        "type": "number",
+                                        "example": 85
+                                    },
+                                    "funding_goal": {
+                                        "type": "number",
+                                        "example": 5000000
+                                    },
+                                    "expected_return": {
+                                        "type": "number",
+                                        "example": 30
+                                    },
+                                    "deadline": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-12-31"
+                                    },
+                                    "rejection_reason": {
+                                        "type": "string",
+                                        "example": "Falta evidencia suficiente"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Caso evaluado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Case"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El caso debe estar en revisión para ser evaluado"
+                    },
+                    "403": {
+                        "description": "Solo abogados y admins pueden evaluar casos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cases/{id}/publish": {
+            "post": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Publicar caso aprobado (hacerlo visible a inversionistas)",
+                "operationId": "a23439138cc1c3f074e1210cffd400b5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Caso publicado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Case"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Solo casos aprobados pueden ser publicados"
+                    },
+                    "403": {
+                        "description": "Solo abogados y admins pueden publicar casos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cases/{id}/start": {
+            "post": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Iniciar caso financiado (cambiar a in_progress)",
+                "operationId": "6a3ea00196f90d04af7aadb93c069743",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Caso iniciado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Case"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El caso debe estar financiado para iniciarse"
+                    },
+                    "403": {
+                        "description": "Solo abogados y admins pueden iniciar casos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cases/{id}/close": {
+            "post": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Cerrar caso con resultado final",
+                "operationId": "6b63c0aafa99b9106155d90f6a3df097",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "outcome"
+                                ],
+                                "properties": {
+                                    "outcome": {
+                                        "type": "string",
+                                        "enum": [
+                                            "won",
+                                            "lost",
+                                            "settled",
+                                            "dismissed"
+                                        ],
+                                        "example": "won"
+                                    },
+                                    "amount_recovered": {
+                                        "type": "number",
+                                        "example": 15000000
+                                    },
+                                    "legal_costs": {
+                                        "type": "number",
+                                        "example": 2000000
+                                    },
+                                    "outcome_description": {
+                                        "type": "string",
+                                        "example": "Se llegó a un acuerdo favorable..."
+                                    },
+                                    "resolution_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-15"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Caso cerrado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Case"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El caso debe estar en progreso para cerrarse"
+                    },
+                    "403": {
+                        "description": "Solo abogados y admins pueden cerrar casos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/cases/{id}/distribute-returns": {
+            "post": {
+                "tags": [
+                    "Cases"
+                ],
+                "summary": "Distribuir retornos a inversionistas después de ganar",
+                "operationId": "5caa67894bb3f03ad21478a620da9273",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retornos distribuidos exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Returns distributed successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "case_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "lawyer_payment": {
+                                                    "$ref": "#/components/schemas/Transaction"
+                                                },
+                                                "investor_returns_count": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "investor_returns": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "total_platform_commission": {
+                                                    "type": "number",
+                                                    "example": 500000
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El caso debe estar completo y ganado para distribuir retornos"
+                    },
+                    "403": {
+                        "description": "Solo admins pueden distribuir retornos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/investments": {
+            "get": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "Listar inversiones",
+                "operationId": "cc015c45e3ae1b0640b001e42b7092a6",
+                "parameters": [
+                    {
+                        "name": "case_id",
+                        "in": "query",
+                        "description": "Filtrar por caso",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de inversiones",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Investment"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "Crear nueva inversión",
+                "operationId": "3e1eee426017d173537139c81df7b2d6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateInvestmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Inversión creada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investment"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/investments/{id}": {
+            "get": {
+                "tags": [
+                    "Investments"
+                ],
+                "summary": "Obtener detalles de una inversión",
+                "operationId": "5a8349c3d4ede44fa0eaddaf0c4c99f3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la inversión",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles de la inversión",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Investment"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Inversión no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/permissions": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Listar todos los permisos",
+                "operationId": "f89fb7b5fd83b3c0f5e4f0e85b39841b",
+                "responses": {
+                    "200": {
+                        "description": "Lista de permisos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Permission"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado (solo admin)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/users/{userId}/permissions": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Obtener permisos de un usuario",
+                "operationId": "867a47e354132093d0950ec88e589ca0",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permisos del usuario (directos + heredados de roles)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Permission"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Asignar permiso a usuario",
+                "operationId": "b8045cfa08f2a6824b9f9d80db2e73f7",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssignPermissionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Permiso asignado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserWithRoles"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado (solo admin)"
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/users/{userId}/permissions/{permission}": {
+            "delete": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Remover permiso de usuario",
+                "operationId": "49603dbe2593a4c1a7a003fcd05e7a12",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "permission",
+                        "in": "path",
+                        "description": "Nombre del permiso",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permiso removido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserWithRoles"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado (solo admin)"
+                    },
+                    "404": {
+                        "description": "Usuario o permiso no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles/{roleId}/permissions": {
+            "post": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Asignar permiso a rol",
+                "operationId": "b8fc2b908ad1817549165edd0c6bcbe2",
+                "parameters": [
+                    {
+                        "name": "roleId",
+                        "in": "path",
+                        "description": "ID del rol",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssignPermissionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Permiso asignado al rol exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Role"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado (solo admin)"
+                    },
+                    "404": {
+                        "description": "Rol no encontrado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles/{roleId}/permissions/{permission}": {
+            "delete": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "Remover permiso de rol",
+                "operationId": "a365649b3026f11a4c9766722d1e6c4b",
+                "parameters": [
+                    {
+                        "name": "roleId",
+                        "in": "path",
+                        "description": "ID del rol",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "permission",
+                        "in": "path",
+                        "description": "Nombre del permiso",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permiso removido del rol exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Role"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado (solo admin)"
+                    },
+                    "404": {
+                        "description": "Rol o permiso no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Listar todos los roles",
+                "operationId": "460941f77ad8eefa6c9692e6214423f3",
+                "responses": {
+                    "200": {
+                        "description": "Lista de roles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Role"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado (solo admin)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/roles/{id}": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Obtener detalles de un rol",
+                "operationId": "19036af4dacf3f1e94b1af539059c631",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del rol",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del rol con permisos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Role"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Rol no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/users/{userId}/roles": {
+            "get": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Obtener roles de un usuario",
+                "operationId": "1f4c0c99f463c21e5ce8bfe7f832ad54",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Roles del usuario",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Role"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Asignar rol a usuario",
+                "operationId": "c779fa8965be394dc15b912c39a4e9d0",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AssignRoleRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol asignado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserWithRoles"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado (solo admin)"
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/users/{userId}/roles/{role}": {
+            "delete": {
+                "tags": [
+                    "Roles"
+                ],
+                "summary": "Remover rol de usuario",
+                "operationId": "17f3810d0812cc28467462208d63bb40",
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "path",
+                        "description": "Nombre del rol",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Rol removido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserWithRoles"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado (solo admin)"
+                    },
+                    "404": {
+                        "description": "Usuario o rol no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/transactions": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Listar transacciones del usuario autenticado (o todas si es admin)",
+                "operationId": "4f2c09e3538a882766ee7d32b6d531c0",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filtrar por tipo de transacción",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "investment",
+                                "platform_commission",
+                                "success_commission",
+                                "lawyer_payment",
+                                "investor_return",
+                                "withdrawal",
+                                "gateway_fee",
+                                "refund"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "processing",
+                                "completed",
+                                "failed",
+                                "cancelled"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de transacciones",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransactionList"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/transactions/{id}": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Obtener detalles de una transacción",
+                "operationId": "aa488ab2ad85baf8ea01022d794f4acb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la transacción",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles de la transacción",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "transaction": {
+                                            "$ref": "#/components/schemas/Transaction"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Transacción no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/transactions/case/{caseId}": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Obtener todas las transacciones de un caso específico",
+                "operationId": "71c774375e25ca4688ca0552951b232f",
+                "parameters": [
+                    {
+                        "name": "caseId",
+                        "in": "path",
+                        "description": "ID del caso",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transacciones del caso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "transactions": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Transaction"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado para ver este caso"
+                    },
+                    "404": {
+                        "description": "Caso no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/transactions/statistics/all": {
+            "get": {
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Obtener estadísticas de transacciones (solo admin)",
+                "operationId": "ea05175d49984358f151d86c703e9ce6",
+                "responses": {
+                    "200": {
+                        "description": "Estadísticas de transacciones",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "statistics": {
+                                            "$ref": "#/components/schemas/TransactionStatistics"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Solo admins pueden ver estadísticas"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/withdrawals": {
+            "get": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Listar retiros del usuario autenticado (o todos si es admin)",
+                "operationId": "688b13e59ee2474085c8cb8d75416245",
+                "parameters": [
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "approved",
+                                "processing",
+                                "completed",
+                                "rejected",
+                                "cancelled"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "pending_only",
+                        "in": "query",
+                        "description": "Solo retiros pendientes (admin)",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de retiros",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WithdrawalList"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Solicitar un retiro",
+                "operationId": "1ecdab06100a2db6578668ef2bb2aaf4",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateWithdrawalRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Retiro solicitado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Withdrawal request created successfully"
+                                        },
+                                        "withdrawal": {
+                                            "$ref": "#/components/schemas/Withdrawal"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Balance insuficiente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Solo inversionistas y abogados pueden solicitar retiros"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/withdrawals/{id}": {
+            "get": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Obtener detalles de un retiro",
+                "operationId": "37fb99c6bf5fd726176020cf9e447671",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del retiro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del retiro",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "withdrawal": {
+                                            "$ref": "#/components/schemas/Withdrawal"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Retiro no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Cancelar un retiro",
+                "operationId": "d65b6cdb88343c9420094c04f95cb84e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del retiro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retiro cancelado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Withdrawal cancelled successfully"
+                                        },
+                                        "withdrawal": {
+                                            "$ref": "#/components/schemas/Withdrawal"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No se puede cancelar un retiro completado"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "404": {
+                        "description": "Retiro no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/withdrawals/{id}/approve": {
+            "post": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Aprobar un retiro (solo admin)",
+                "operationId": "8d7707041f2dcccda2a3544e9948a607",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del retiro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retiro aprobado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Withdrawal approved successfully"
+                                        },
+                                        "withdrawal": {
+                                            "$ref": "#/components/schemas/Withdrawal"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El retiro no puede ser aprobado en su estado actual"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Solo admins pueden aprobar retiros"
+                    },
+                    "404": {
+                        "description": "Retiro no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/withdrawals/{id}/reject": {
+            "post": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Rechazar un retiro (solo admin)",
+                "operationId": "e9bcc4cebc7c32a7bc0eb4be1c741bcc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del retiro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "rejection_reason"
+                                ],
+                                "properties": {
+                                    "rejection_reason": {
+                                        "type": "string",
+                                        "example": "Datos bancarios incorrectos"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Retiro rechazado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Withdrawal rejected"
+                                        },
+                                        "withdrawal": {
+                                            "$ref": "#/components/schemas/Withdrawal"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El retiro no puede ser rechazado en su estado actual"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Solo admins pueden rechazar retiros"
+                    },
+                    "404": {
+                        "description": "Retiro no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/withdrawals/{id}/process": {
+            "post": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Procesar un retiro aprobado (solo admin)",
+                "operationId": "baeea93be9f052e662eee1deb748540b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del retiro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retiro en proceso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Withdrawal processing started"
+                                        },
+                                        "withdrawal": {
+                                            "$ref": "#/components/schemas/Withdrawal"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "El retiro no puede ser procesado en su estado actual"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Solo admins pueden procesar retiros"
+                    },
+                    "404": {
+                        "description": "Retiro no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/withdrawals/{id}/complete": {
+            "post": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Completar un retiro procesado (solo admin)",
+                "operationId": "084f1c3ee232538eb8c23904f7890e83",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del retiro",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "transfer_reference"
+                                ],
+                                "properties": {
+                                    "transfer_reference": {
+                                        "type": "string",
+                                        "example": "REF-123456789"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Retiro completado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Withdrawal completed successfully"
+                                        },
+                                        "withdrawal": {
+                                            "$ref": "#/components/schemas/Withdrawal"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error al completar retiro"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Solo admins pueden completar retiros"
+                    },
+                    "404": {
+                        "description": "Retiro no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/withdrawals/balance/available": {
+            "get": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Obtener balance disponible para retiro",
+                "operationId": "121c9084ba743a3ab2778207896ff224",
+                "responses": {
+                    "200": {
+                        "description": "Balance disponible",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AvailableBalance"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Solo inversionistas y abogados pueden consultar balance"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/withdrawals/statistics/all": {
+            "get": {
+                "tags": [
+                    "Withdrawals"
+                ],
+                "summary": "Obtener estadísticas de retiros (solo admin)",
+                "operationId": "02c0a6f878e511f31b580ad555e34180",
+                "responses": {
+                    "200": {
+                        "description": "Estadísticas de retiros",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "statistics": {
+                                            "$ref": "#/components/schemas/WithdrawalStatistics"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Solo admins pueden ver estadísticas"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Case": {
+                "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Despido injustificado durante licencia médica"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Fui despedida de mi trabajo mientras estaba con licencia médica..."
+                    },
+                    "victim_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "lawyer_id": {
+                        "type": "integer",
+                        "example": 3,
+                        "nullable": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "pending",
+                            "published",
+                            "funding",
+                            "in_progress",
+                            "completed",
+                            "closed"
+                        ],
+                        "example": "published"
+                    },
+                    "category": {
+                        "type": "string",
+                        "example": "despido_injustificado"
+                    },
+                    "company": {
+                        "type": "string",
+                        "example": "Retail Chile S.A."
+                    },
+                    "funding_goal": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 1500000
+                    },
+                    "current_funding": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 750000
+                    },
+                    "success_rate": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 85
+                    },
+                    "expected_return": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 30
+                    },
+                    "deadline": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-06-01"
+                    },
+                    "legal_analysis": {
+                        "type": "string"
+                    },
+                    "evaluation_data": {
+                        "type": "object"
+                    },
+                    "lawyer_evaluation_fee": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 500000
+                    },
+                    "lawyer_success_fee_percentage": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 15
+                    },
+                    "lawyer_fixed_fee": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 2000000
+                    },
+                    "lawyer_total_compensation": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 2500000
+                    },
+                    "lawyer_paid_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "outcome": {
+                        "type": "string",
+                        "enum": [
+                            "won",
+                            "lost",
+                            "settled",
+                            "dismissed"
+                        ],
+                        "example": "won",
+                        "nullable": true
+                    },
+                    "amount_recovered": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 15000000,
+                        "nullable": true
+                    },
+                    "legal_costs": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 2000000
+                    },
+                    "outcome_description": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "resolution_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-11-15",
+                        "nullable": true
+                    },
+                    "closed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "CreateCaseRequest": {
+                "required": [
+                    "title",
+                    "description",
+                    "category"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "Despido injustificado"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Descripción detallada del caso..."
+                    },
+                    "category": {
+                        "type": "string",
+                        "example": "despido_injustificado"
+                    },
+                    "company": {
+                        "type": "string",
+                        "example": "Empresa ABC S.A."
+                    },
+                    "funding_goal": {
+                        "type": "number",
+                        "example": 1500000
+                    }
+                },
+                "type": "object"
+            },
+            "CaseList": {
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Case"
+                        }
+                    },
+                    "meta": {
+                        "properties": {
+                            "current_page": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "per_page": {
+                                "type": "integer",
+                                "example": 15
+                            },
+                            "total": {
+                                "type": "integer",
+                                "example": 100
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "Investment": {
+                "required": [
+                    "id",
+                    "case_id",
+                    "investor_id",
+                    "amount",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "case_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "investor_id": {
+                        "type": "integer",
+                        "example": 4
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 500000
+                    },
+                    "expected_return_percentage": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 30
+                    },
+                    "expected_return_amount": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 150000
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "confirmed",
+                            "active",
+                            "completed",
+                            "cancelled"
+                        ],
+                        "example": "confirmed"
+                    },
+                    "payment_data": {
+                        "type": "object"
+                    },
+                    "confirmed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "completed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "actual_return": {
+                        "type": "number",
+                        "format": "decimal",
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "CreateInvestmentRequest": {
+                "required": [
+                    "case_id",
+                    "amount"
+                ],
+                "properties": {
+                    "case_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "amount": {
+                        "type": "number",
+                        "example": 500000
+                    },
+                    "payment_data": {
+                        "properties": {
+                            "method": {
+                                "type": "string",
+                                "example": "webpay"
+                            },
+                            "transaction_id": {
+                                "type": "string",
+                                "example": "TXN-123456"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "Role": {
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "lawyer"
+                    },
+                    "guard_name": {
+                        "type": "string",
+                        "example": "web"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "permissions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Permission"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Permission": {
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "create_case"
+                    },
+                    "guard_name": {
+                        "type": "string",
+                        "example": "web"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "AssignRoleRequest": {
+                "required": [
+                    "role"
+                ],
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "admin",
+                            "victim",
+                            "lawyer",
+                            "investor"
+                        ],
+                        "example": "lawyer"
+                    }
+                },
+                "type": "object"
+            },
+            "AssignPermissionRequest": {
+                "required": [
+                    "permission"
+                ],
+                "properties": {
+                    "permission": {
+                        "type": "string",
+                        "example": "create_case"
+                    }
+                },
+                "type": "object"
+            },
+            "UserWithRoles": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    {
+                        "properties": {
+                            "roles": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Role"
+                                }
+                            },
+                            "permissions": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Permission"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    }
+                ]
+            },
+            "Transaction": {
+                "required": [
+                    "id",
+                    "transaction_id",
+                    "type",
+                    "amount",
+                    "direction",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "transaction_id": {
+                        "type": "string",
+                        "example": "TXN-ABC123DEF456"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "investment",
+                            "platform_commission",
+                            "success_commission",
+                            "lawyer_payment",
+                            "investor_return",
+                            "withdrawal",
+                            "gateway_fee",
+                            "refund"
+                        ],
+                        "example": "investment"
+                    },
+                    "case_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "investment_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 1000000
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "CLP"
+                    },
+                    "direction": {
+                        "type": "string",
+                        "enum": [
+                            "in",
+                            "out"
+                        ],
+                        "example": "in"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "processing",
+                            "completed",
+                            "failed",
+                            "cancelled"
+                        ],
+                        "example": "completed"
+                    },
+                    "payment_gateway": {
+                        "type": "string",
+                        "example": "transbank",
+                        "nullable": true
+                    },
+                    "gateway_transaction_id": {
+                        "type": "string",
+                        "example": "TBK-789456123",
+                        "nullable": true
+                    },
+                    "gateway_fee": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 25000
+                    },
+                    "gateway_response": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Inversión en caso #1"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "processed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "completed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "TransactionList": {
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Transaction"
+                        }
+                    },
+                    "meta": {
+                        "properties": {
+                            "current_page": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "per_page": {
+                                "type": "integer",
+                                "example": 20
+                            },
+                            "total": {
+                                "type": "integer",
+                                "example": 50
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "TransactionStatistics": {
+                "properties": {
+                    "total_investments": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 50000000
+                    },
+                    "total_platform_commissions": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 3750000
+                    },
+                    "total_success_commissions": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 2000000
+                    },
+                    "total_lawyer_payments": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 10000000
+                    },
+                    "total_investor_returns": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 65000000
+                    },
+                    "total_withdrawals": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 30000000
+                    },
+                    "total_gateway_fees": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 1500000
+                    },
+                    "net_platform_revenue": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": -50750000
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "required": [
+                    "id",
+                    "name",
+                    "email",
+                    "role"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "María González"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "maria@testigos.cl"
+                    },
+                    "rut": {
+                        "type": "string",
+                        "example": "12345678-9"
+                    },
+                    "birth_date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "1990-05-15"
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "Santiago, Chile"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+56912345678"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "admin",
+                            "victim",
+                            "lawyer",
+                            "investor"
+                        ],
+                        "example": "victim"
+                    },
+                    "avatar": {
+                        "type": "string",
+                        "example": "https://example.com/avatar.jpg",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "last_login_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "LoginRequest": {
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "maria@testigos.cl"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password"
+                    }
+                },
+                "type": "object"
+            },
+            "RegisterRequest": {
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "role"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "María González"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "maria@testigos.cl"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password"
+                    },
+                    "password_confirmation": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password"
+                    },
+                    "rut": {
+                        "type": "string",
+                        "example": "12345678-9"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+56912345678"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "victim",
+                            "lawyer",
+                            "investor"
+                        ],
+                        "example": "victim"
+                    }
+                },
+                "type": "object"
+            },
+            "AuthResponse": {
+                "properties": {
+                    "access_token": {
+                        "type": "string",
+                        "example": "1|abcdef123456..."
+                    },
+                    "token_type": {
+                        "type": "string",
+                        "example": "Bearer"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
+            "Withdrawal": {
+                "required": [
+                    "id",
+                    "withdrawal_id",
+                    "user_id",
+                    "amount",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "withdrawal_id": {
+                        "type": "string",
+                        "example": "WTH-ABC123DEF456"
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "investment_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 1000000
+                    },
+                    "fee": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 20000
+                    },
+                    "net_amount": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 980000
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "CLP"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "approved",
+                            "processing",
+                            "completed",
+                            "rejected",
+                            "cancelled"
+                        ],
+                        "example": "pending"
+                    },
+                    "payment_method": {
+                        "type": "string",
+                        "enum": [
+                            "bank_transfer",
+                            "check",
+                            "paypal",
+                            "other"
+                        ],
+                        "example": "bank_transfer"
+                    },
+                    "payment_details": {
+                        "properties": {
+                            "bank_name": {
+                                "type": "string",
+                                "example": "Banco de Chile"
+                            },
+                            "account_number": {
+                                "type": "string",
+                                "example": "1234567890"
+                            },
+                            "account_holder": {
+                                "type": "string",
+                                "example": "Juan Pérez"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "approved_by": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "approved_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "rejection_reason": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "transaction_id": {
+                        "type": "integer",
+                        "example": 5,
+                        "nullable": true
+                    },
+                    "transfer_reference": {
+                        "type": "string",
+                        "example": "REF-987654321",
+                        "nullable": true
+                    },
+                    "processed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "completed_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "user_notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "admin_notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "CreateWithdrawalRequest": {
+                "required": [
+                    "amount",
+                    "payment_method",
+                    "payment_details"
+                ],
+                "properties": {
+                    "amount": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 1000000
+                    },
+                    "payment_method": {
+                        "type": "string",
+                        "enum": [
+                            "bank_transfer",
+                            "check",
+                            "paypal",
+                            "other"
+                        ],
+                        "example": "bank_transfer"
+                    },
+                    "payment_details": {
+                        "required": [
+                            "bank_name",
+                            "account_number",
+                            "account_holder"
+                        ],
+                        "properties": {
+                            "bank_name": {
+                                "type": "string",
+                                "example": "Banco de Chile"
+                            },
+                            "account_number": {
+                                "type": "string",
+                                "example": "1234567890"
+                            },
+                            "account_holder": {
+                                "type": "string",
+                                "example": "Juan Pérez"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "investment_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "user_notes": {
+                        "type": "string",
+                        "example": "Retiro de ganancias del trimestre"
+                    }
+                },
+                "type": "object"
+            },
+            "WithdrawalList": {
+                "properties": {
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Withdrawal"
+                        }
+                    },
+                    "meta": {
+                        "properties": {
+                            "current_page": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "per_page": {
+                                "type": "integer",
+                                "example": 15
+                            },
+                            "total": {
+                                "type": "integer",
+                                "example": 30
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "WithdrawalStatistics": {
+                "properties": {
+                    "total_pending": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "total_approved": {
+                        "type": "integer",
+                        "example": 20
+                    },
+                    "total_completed": {
+                        "type": "integer",
+                        "example": 15
+                    },
+                    "total_amount_pending": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 5000000
+                    },
+                    "total_amount_completed": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 30000000
+                    },
+                    "total_fees_collected": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 600000
+                    }
+                },
+                "type": "object"
+            },
+            "AvailableBalance": {
+                "properties": {
+                    "available_balance": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 2500000
+                    },
+                    "currency": {
+                        "type": "string",
+                        "example": "CLP"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Auth",
+            "description": "Endpoints de autenticación"
+        },
+        {
+            "name": "Cases",
+            "description": "Gestión de casos legales"
+        },
+        {
+            "name": "Investments",
+            "description": "Gestión de inversiones"
+        },
+        {
+            "name": "Roles",
+            "description": "Gestión de roles y asignación a usuarios"
+        },
+        {
+            "name": "Permissions",
+            "description": "Gestión de permisos para usuarios y roles"
+        },
+        {
+            "name": "Transactions",
+            "description": "Gestión de transacciones financieras de la plataforma"
+        },
+        {
+            "name": "Withdrawals",
+            "description": "Gestión de retiros de fondos para inversionistas y abogados"
+        }
+    ]
+}
