@@ -214,6 +214,14 @@ class InvestmentController extends Controller
         try {
             $updateData = $request->only(['status', 'actual_return', 'notes']);
 
+            // Calculate actual_return_percentage if actual_return is provided
+            if ($request->has('actual_return') && $request->actual_return !== null) {
+                $actualReturnPercentage = $investment->amount > 0
+                    ? round((($request->actual_return - $investment->amount) / $investment->amount) * 100, 2)
+                    : 0;
+                $updateData['actual_return_percentage'] = $actualReturnPercentage;
+            }
+
             if ($request->status === 'completed') {
                 $updateData['completed_at'] = now();
             }
@@ -285,7 +293,7 @@ class InvestmentController extends Controller
 
         $query = CaseModel::with(['victim', 'lawyer'])
             ->where('status', 'published')
-            ->where('current_funding', '<', 'funding_goal');
+            ->whereColumn('current_funding', '<', 'funding_goal');
 
         // Apply filters
         if ($request->has('category')) {

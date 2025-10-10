@@ -88,20 +88,45 @@ class InvestmentService
     {
         $investments = Investment::where('investor_id', $investorId);
 
+        $totalInvested = $investments->whereIn('status', ['confirmed', 'active', 'completed'])->sum('amount');
+        $totalReturns = $investments->where('status', 'completed')->sum('actual_return');
+        $completedInvestments = Investment::where('investor_id', $investorId)
+            ->where('status', 'completed')
+            ->get();
+
+        // Calcular ROI promedio: (actual_return / amount) * 100
+        $averageReturnRate = 0;
+        if ($completedInvestments->count() > 0) {
+            $totalReturnPercentage = $completedInvestments->sum(function ($investment) {
+                if ($investment->amount > 0 && $investment->actual_return) {
+                    return (($investment->actual_return - $investment->amount) / $investment->amount) * 100;
+                }
+                return 0;
+            });
+            $averageReturnRate = $totalReturnPercentage / $completedInvestments->count();
+        }
+
         return [
-            'total_investments' => $investments->count(),
-            'total_invested' => $investments->whereIn('status', ['confirmed', 'active', 'completed'])->sum('amount'),
-            'active_investments' => $investments->whereIn('status', ['confirmed', 'active'])->count(),
-            'completed_investments' => $investments->where('status', 'completed')->count(),
-            'total_returns' => $investments->where('status', 'completed')->sum('actual_return'),
-            'average_return_rate' => $investments->where('status', 'completed')->avg('actual_return_percentage') ?? 0,
+            'total_investments' => Investment::where('investor_id', $investorId)->count(),
+            'total_invested' => $totalInvested,
+            'active_investments' => Investment::where('investor_id', $investorId)->whereIn('status', ['confirmed', 'active'])->count(),
+            'completed_investments' => $completedInvestments->count(),
+            'total_returns' => $totalReturns,
+            'average_return_rate' => round($averageReturnRate, 2),
+            'net_profit' => $totalReturns - $totalInvested,
         ];
     }
 
     public function processInvestmentReturn(Investment $investment, float $actualReturn): Investment
     {
+        // Calculate actual return percentage
+        $actualReturnPercentage = $investment->amount > 0
+            ? round((($actualReturn - $investment->amount) / $investment->amount) * 100, 2)
+            : 0;
+
         $investment->update([
             'actual_return' => $actualReturn,
+            'actual_return_percentage' => $actualReturnPercentage,
             'status' => InvestmentStatus::COMPLETED->value,
             'completed_at' => now(),
         ]);

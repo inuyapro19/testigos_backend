@@ -25,6 +25,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: "confirmed_at", type: "string", format: "date-time", nullable: true),
         new OA\Property(property: "completed_at", type: "string", format: "date-time", nullable: true),
         new OA\Property(property: "actual_return", type: "number", format: "decimal", nullable: true),
+        new OA\Property(property: "actual_return_percentage", type: "number", format: "decimal", nullable: true, example: 25.50),
         new OA\Property(property: "notes", type: "string", nullable: true),
         new OA\Property(property: "created_at", type: "string", format: "date-time"),
         new OA\Property(property: "updated_at", type: "string", format: "date-time"),

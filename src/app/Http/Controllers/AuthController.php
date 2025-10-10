@@ -22,7 +22,7 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'rut' => 'required|string|unique:users',
-            'birth_date' => 'required|date',
+            'birth_date' => 'nullable|date',
             'address' => 'required|string',
             'phone' => 'required|string',
             'role' => 'required|in:victim,lawyer,investor',

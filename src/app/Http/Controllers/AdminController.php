@@ -22,48 +22,27 @@ class AdminController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // Calculate pending withdrawals
+        $pendingWithdrawals = DB::table('withdrawals')
+            ->where('status', 'pending')
+            ->count();
+
+        // Calculate platform commission (5% of total invested)
+        $totalInvested = Investment::confirmed()->sum('amount');
+        $platformCommission = $totalInvested * 0.05;
+
         $stats = [
-            'users' => [
-                'total' => User::count(),
-                'victims' => User::where('role', 'victim')->count(),
-                'lawyers' => User::where('role', 'lawyer')->count(),
-                'investors' => User::where('role', 'investor')->count(),
-                'active' => User::where('is_active', true)->count(),
-                'new_this_month' => User::whereMonth('created_at', now()->month)->count(),
-            ],
-            'cases' => [
-                'total' => CaseModel::count(),
-                'submitted' => CaseModel::where('status', 'submitted')->count(),
-                'under_review' => CaseModel::where('status', 'under_review')->count(),
-                'published' => CaseModel::where('status', 'published')->count(),
-                'funded' => CaseModel::where('status', 'funded')->count(),
-                'completed' => CaseModel::where('status', 'completed')->count(),
-                'rejected' => CaseModel::where('status', 'rejected')->count(),
-            ],
-            'investments' => [
-                'total_amount' => Investment::confirmed()->sum('amount'),
-                'total_count' => Investment::confirmed()->count(),
-                'active_count' => Investment::active()->count(),
-                'completed_count' => Investment::where('status', 'completed')->count(),
-                'average_amount' => Investment::confirmed()->avg('amount'),
-                'total_returns' => Investment::where('status', 'completed')->sum('actual_return'),
-            ],
-            'financial' => [
-                'total_funding_goal' => CaseModel::whereNotNull('funding_goal')->sum('funding_goal'),
-                'total_current_funding' => CaseModel::sum('current_funding'),
-                'funding_percentage' => 0,
-            ],
+            'total_users' => User::count(),
+            'total_cases' => CaseModel::count(),
+            'total_investments' => Investment::confirmed()->count(),
+            'total_invested' => $totalInvested,
+            'total_returns' => Investment::where('status', 'completed')->sum('actual_return'),
+            'pending_withdrawals' => $pendingWithdrawals,
+            'active_cases' => CaseModel::whereIn('status', ['published', 'funded', 'in_progress'])->count(),
+            'platform_commission' => $platformCommission,
         ];
 
-        // Calculate funding percentage
-        if ($stats['financial']['total_funding_goal'] > 0) {
-            $stats['financial']['funding_percentage'] = round(
-                ($stats['financial']['total_current_funding'] / $stats['financial']['total_funding_goal']) * 100,
-                2
-            );
-        }
-
-        return response()->json(['statistics' => $stats]);
+        return response()->json(['data' => $stats]);
     }
 
     /**
@@ -95,9 +74,11 @@ class AdminController extends Controller
             });
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(20);
+        $users = $query->orderBy('created_at', 'desc')->get();
 
-        return response()->json($users);
+        return response()->json([
+            'data' => \App\Http\Resources\Admin\UserResource::collection($users)
+        ]);
     }
 
     /**
@@ -128,9 +109,11 @@ class AdminController extends Controller
             });
         }
 
-        $cases = $query->orderBy('created_at', 'desc')->paginate(20);
+        $cases = $query->orderBy('created_at', 'desc')->get();
 
-        return response()->json($cases);
+        return response()->json([
+            'data' => \App\Http\Resources\Admin\CaseResource::collection($cases)
+        ]);
     }
 
     /**
@@ -157,9 +140,11 @@ class AdminController extends Controller
             $query->where('investor_id', $request->investor_id);
         }
 
-        $investments = $query->orderBy('created_at', 'desc')->paginate(20);
+        $investments = $query->orderBy('created_at', 'desc')->get();
 
-        return response()->json($investments);
+        return response()->json([
+            'data' => \App\Http\Resources\Admin\InvestmentResource::collection($investments)
+        ]);
     }
 
     /**
@@ -181,7 +166,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'User status updated successfully',
-            'user' => $user
+            'data' => new \App\Http\Resources\Admin\UserResource($user)
         ]);
     }
 

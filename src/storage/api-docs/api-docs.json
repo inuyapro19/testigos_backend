@@ -2474,6 +2474,12 @@
                         "format": "decimal",
                         "nullable": true
                     },
+                    "actual_return_percentage": {
+                        "type": "number",
+                        "format": "decimal",
+                        "example": 25.5,
+                        "nullable": true
+                    },
                     "notes": {
                         "type": "string",
                         "nullable": true

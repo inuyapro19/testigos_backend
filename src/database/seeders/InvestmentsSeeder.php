@@ -161,6 +161,7 @@ class InvestmentsSeeder extends Seeder
             'success_commission_percentage' => 5.0,
             'success_commission_amount' => 106250, // 5% of (2500000 + 625000)
             'actual_return' => 1180555, // Proportional share of recovered amount
+            'actual_return_percentage' => -52.78, // ((1180555 - 2500000) / 2500000) * 100
             'notes' => 'Caso ganado. Retorno calculado proporcionalmente según monto recuperado.',
             'created_at' => now()->subMonths(5),
             'updated_at' => now()->subDays(2),
@@ -181,6 +182,7 @@ class InvestmentsSeeder extends Seeder
             'success_commission_percentage' => 5.0,
             'success_commission_amount' => 85000, // 5% of (2000000 + 500000)
             'actual_return' => 944444, // Proportional share of recovered amount
+            'actual_return_percentage' => -52.78, // ((944444 - 2000000) / 2000000) * 100
             'notes' => 'Caso ganado. Retorno calculado proporcionalmente según monto recuperado.',
             'created_at' => now()->subMonths(5),
             'updated_at' => now()->subDays(2),

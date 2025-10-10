@@ -21,6 +21,10 @@ class InvestmentFactory extends Factory
         $platformCommissionPercentage = $this->faker->randomFloat(2, 5, 10);
         $platformCommissionAmount = ($amount * $platformCommissionPercentage) / 100;
 
+        // Calculate actual return if present
+        $actualReturn = $this->faker->boolean(30) ? $amount + $this->faker->numberBetween($expectedReturn * 0.8, $expectedReturn * 1.2) : null;
+        $actualReturnPercentage = $actualReturn ? round((($actualReturn - $amount) / $amount) * 100, 2) : null;
+
         return [
             'case_id' => CaseModel::factory(),
             'investor_id' => User::factory(),
@@ -34,7 +38,8 @@ class InvestmentFactory extends Factory
             ],
             'confirmed_at' => $this->faker->boolean(70) ? $this->faker->dateTimeBetween('-6 months', 'now') : null,
             'completed_at' => $this->faker->boolean(30) ? $this->faker->dateTimeBetween('-3 months', 'now') : null,
-            'actual_return' => $this->faker->boolean(30) ? $amount + $this->faker->numberBetween($expectedReturn * 0.8, $expectedReturn * 1.2) : null,
+            'actual_return' => $actualReturn,
+            'actual_return_percentage' => $actualReturnPercentage,
             'notes' => $this->faker->boolean(40) ? $this->faker->sentence() : null,
             'platform_commission_percentage' => $platformCommissionPercentage,
             'platform_commission_amount' => $platformCommissionAmount,
@@ -53,11 +58,17 @@ class InvestmentFactory extends Factory
 
     public function completed(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'completed',
-            'confirmed_at' => $this->faker->dateTimeBetween('-6 months', '-3 months'),
-            'completed_at' => now(),
-            'actual_return' => $attributes['amount'] + $attributes['expected_return_amount'],
-        ]);
+        return $this->state(function (array $attributes) {
+            $actualReturn = $attributes['amount'] + $attributes['expected_return_amount'];
+            $actualReturnPercentage = round((($actualReturn - $attributes['amount']) / $attributes['amount']) * 100, 2);
+
+            return [
+                'status' => 'completed',
+                'confirmed_at' => $this->faker->dateTimeBetween('-6 months', '-3 months'),
+                'completed_at' => now(),
+                'actual_return' => $actualReturn,
+                'actual_return_percentage' => $actualReturnPercentage,
+            ];
+        });
     }
 }

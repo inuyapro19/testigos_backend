@@ -89,9 +89,15 @@ class DistributeReturnsAction
                 // Calculate actual return (proportional return - success commission)
                 $actualReturn = $proportionalReturn - $successCommission;
 
+                // Calculate actual return percentage
+                $actualReturnPercentage = $investment->amount > 0
+                    ? round((($actualReturn - $investment->amount) / $investment->amount) * 100, 2)
+                    : 0;
+
                 // Update investment
                 $investment->update([
                     'actual_return' => $actualReturn,
+                    'actual_return_percentage' => $actualReturnPercentage,
                     'success_commission_percentage' => $successCommissionPercentage,
                     'success_commission_amount' => $successCommission,
                     'status' => 'completed',

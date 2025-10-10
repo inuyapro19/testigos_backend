@@ -26,6 +26,7 @@ class Investment extends Model
         'confirmed_at',
         'completed_at',
         'actual_return',
+        'actual_return_percentage',
         'notes',
         'platform_commission_percentage',
         'platform_commission_amount',
@@ -43,6 +44,7 @@ class Investment extends Model
         'expected_return_percentage' => 'decimal:2',
         'expected_return_amount' => 'decimal:2',
         'actual_return' => 'decimal:2',
+        'actual_return_percentage' => 'decimal:2',
         'payment_data' => 'array',
         'confirmed_at' => 'datetime',
         'completed_at' => 'datetime',
@@ -74,18 +76,6 @@ class Investment extends Model
     public function getExpectedTotalReturnAttribute(): float
     {
         return $this->amount + $this->expected_return_amount;
-    }
-
-    /**
-     * Calculate actual return percentage.
-     */
-    public function getActualReturnPercentageAttribute(): ?float
-    {
-        if (!$this->actual_return || $this->amount == 0) {
-            return null;
-        }
-        
-        return round((($this->actual_return - $this->amount) / $this->amount) * 100, 2);
     }
 
     /**

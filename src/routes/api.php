@@ -27,6 +27,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/cases/pending/review', [App\Http\Controllers\Api\V1\CaseController::class, 'pendingReview']);
         Route::get('/cases/published/list', [App\Http\Controllers\Api\V1\CaseController::class, 'published']);
         Route::post('/cases/{case}/documents', [App\Http\Controllers\Api\V1\CaseController::class, 'addDocument']);
+        Route::get('/cases/{case}/documents/{document}', [App\Http\Controllers\Api\V1\CaseController::class, 'downloadDocument']);
         Route::post('/cases/{case}/assign-lawyer', [App\Http\Controllers\Api\V1\CaseController::class, 'assignLawyer']);
         Route::post('/cases/{case}/evaluate', [App\Http\Controllers\Api\V1\CaseController::class, 'evaluate']);
         Route::post('/cases/{case}/publish', [App\Http\Controllers\Api\V1\CaseController::class, 'publish']);

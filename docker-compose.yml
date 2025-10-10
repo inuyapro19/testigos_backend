@@ -59,6 +59,29 @@ services:
     networks:
       - testigos_network
 
+  queue:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: testigos_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./src:/var/www
+    networks:
+      - testigos_network
+    depends_on:
+      - db
+      - redis
+    command: php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_DATABASE: testigos
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+
 networks:
   testigos_network:
     driver: bridge

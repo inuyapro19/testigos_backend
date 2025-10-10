@@ -116,8 +116,27 @@ class CaseController extends Controller
 
         // Authorization check
         $user = $request->user();
-        if ($case->status === 'submitted' && $case->victim_id !== $user->id && $user->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized'], 403);
+
+        // For submitted cases: only victim, lawyers, and admins can view
+        if ($case->status === 'submitted') {
+            $canView = $case->victim_id === $user->id
+                    || $user->role === 'lawyer'
+                    || $user->role === 'admin';
+
+            if (!$canView) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        }
+
+        // For under_review cases: only victim, assigned lawyer, and admins can view
+        if ($case->status === 'under_review') {
+            $canView = $case->victim_id === $user->id
+                    || $case->lawyer_id === $user->id
+                    || $user->role === 'admin';
+
+            if (!$canView) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
         }
 
         return response()->json([
@@ -288,7 +307,7 @@ class CaseController extends Controller
     }
 
     /**
-     * Add document to case.
+     * Add document(s) to case - supports multiple files.
      */
     public function addDocument(Request $request, $id): JsonResponse
     {
@@ -300,10 +319,14 @@ class CaseController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        // Support both single and multiple files
         $validator = Validator::make($request->all(), [
-            'document' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
-            'document_type' => 'required|in:contrato,liquidacion,carta_despido,certificado_medico,prueba,otro',
-            'description' => 'nullable|string',
+            'documents' => 'required|array',
+            'documents.*' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'document_types' => 'required|array',
+            'document_types.*' => 'required|in:contrato,liquidacion,carta_despido,certificado_medico,prueba,otro',
+            'descriptions' => 'nullable|array',
+            'descriptions.*' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -314,33 +337,64 @@ class CaseController extends Controller
         }
 
         try {
-            $file = $request->file('document');
-            $originalName = $file->getClientOriginalName();
-            $filePath = $file->store('documents', 'public');
+            $uploadedDocuments = [];
+            $files = $request->file('documents');
+            $documentTypes = $request->input('document_types', []);
+            $descriptions = $request->input('descriptions', []);
 
-            $document = CaseDocument::create([
-                'case_id' => $case->id,
-                'name' => pathinfo($originalName, PATHINFO_FILENAME),
-                'original_name' => $originalName,
-                'file_path' => $filePath,
-                'file_type' => $file->getClientOriginalExtension(),
-                'file_size' => $file->getSize(),
-                'mime_type' => $file->getMimeType(),
-                'document_type' => $request->document_type,
-                'description' => $request->description,
-            ]);
+            foreach ($files as $index => $file) {
+                $originalName = $file->getClientOriginalName();
+                $filePath = $file->store('documents', 'public');
+
+                $document = CaseDocument::create([
+                    'case_id' => $case->id,
+                    'name' => pathinfo($originalName, PATHINFO_FILENAME),
+                    'original_name' => $originalName,
+                    'file_path' => $filePath,
+                    'file_type' => $file->getClientOriginalExtension(),
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                    'document_type' => $documentTypes[$index] ?? 'otro',
+                    'description' => $descriptions[$index] ?? null,
+                ]);
+
+                $uploadedDocuments[] = $document;
+            }
 
             return response()->json([
-                'message' => 'Document uploaded successfully',
-                'data' => $document,
+                'message' => count($uploadedDocuments) . ' document(s) uploaded successfully',
+                'data' => $uploadedDocuments,
             ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to upload document',
+                'message' => 'Failed to upload documents',
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Download a case document.
+     */
+    public function downloadDocument(Request $request, $caseId, $documentId)
+    {
+        $case = CaseModel::findOrFail($caseId);
+        $document = CaseDocument::where('case_id', $caseId)->findOrFail($documentId);
+
+        // Authorization - anyone who can view the case can download documents
+        $user = $request->user();
+        if ($case->status === 'submitted' && $case->victim_id !== $user->id && $user->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Check if file exists
+        $filePath = storage_path('app/public/' . $document->file_path);
+        if (!file_exists($filePath)) {
+            return response()->json(['message' => 'File not found'], 404);
+        }
+
+        return response()->download($filePath, $document->original_name);
     }
 
     /**

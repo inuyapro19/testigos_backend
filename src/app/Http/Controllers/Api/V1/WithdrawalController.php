@@ -23,22 +23,49 @@ class WithdrawalController extends Controller
 
         // Admins can see all withdrawals or pending ones
         if ($user->isAdmin()) {
-            if ($request->has('pending_only') && $request->pending_only) {
-                $withdrawals = $this->withdrawalService->getPendingWithdrawals();
-            } else {
-                $withdrawals = \App\Models\Withdrawal::with(['user', 'investment', 'approver', 'transaction'])
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(20);
-            }
+            $withdrawals = \App\Models\Withdrawal::with(['user', 'investment', 'approver', 'transaction'])
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-            return response()->json($withdrawals);
+            // Transform to match frontend expected format
+            $data = $withdrawals->map(function ($withdrawal) {
+                return [
+                    'id' => $withdrawal->id,
+                    'user_id' => $withdrawal->user_id,
+                    'amount' => $withdrawal->amount,
+                    'status' => $withdrawal->status,
+                    'bank_name' => $withdrawal->payment_details['bank_name'] ?? null,
+                    'bank_account' => $withdrawal->payment_details['account_number'] ?? null,
+                    'created_at' => $withdrawal->created_at->toISOString(),
+                    'user' => $withdrawal->user ? [
+                        'id' => $withdrawal->user->id,
+                        'name' => $withdrawal->user->name,
+                    ] : null,
+                ];
+            });
+
+            return response()->json(['data' => $data]);
         }
 
         // Other users see only their withdrawals
-        $filters = $request->only(['status']);
-        $withdrawals = $this->withdrawalService->getUserWithdrawals($user->id, $filters);
+        $withdrawals = \App\Models\Withdrawal::where('user_id', $user->id)
+            ->with(['user', 'investment'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return response()->json($withdrawals);
+        $data = $withdrawals->map(function ($withdrawal) {
+            return [
+                'id' => $withdrawal->id,
+                'user_id' => $withdrawal->user_id,
+                'amount' => $withdrawal->amount,
+                'status' => $withdrawal->status,
+                'bank_name' => $withdrawal->payment_details['bank_name'] ?? null,
+                'bank_account' => $withdrawal->payment_details['account_number'] ?? null,
+                'created_at' => $withdrawal->created_at->toISOString(),
+            ];
+        });
+
+        return response()->json(['data' => $data]);
     }
 
     /**
@@ -139,7 +166,15 @@ class WithdrawalController extends Controller
 
             return response()->json([
                 'message' => 'Withdrawal approved successfully',
-                'withdrawal' => $withdrawal->load(['user', 'investment', 'approver'])
+                'data' => [
+                    'id' => $withdrawal->id,
+                    'user_id' => $withdrawal->user_id,
+                    'amount' => $withdrawal->amount,
+                    'status' => $withdrawal->status,
+                    'bank_name' => $withdrawal->payment_details['bank_name'] ?? null,
+                    'bank_account' => $withdrawal->payment_details['account_number'] ?? null,
+                    'created_at' => $withdrawal->created_at->toISOString(),
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -160,7 +195,7 @@ class WithdrawalController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'rejection_reason' => 'required|string|max:500',
+            'reason' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -171,11 +206,19 @@ class WithdrawalController extends Controller
         }
 
         try {
-            $withdrawal = $this->withdrawalService->rejectWithdrawal($id, $request->rejection_reason);
+            $withdrawal = $this->withdrawalService->rejectWithdrawal($id, $request->reason ?? 'No reason provided');
 
             return response()->json([
                 'message' => 'Withdrawal rejected',
-                'withdrawal' => $withdrawal->load(['user', 'investment'])
+                'data' => [
+                    'id' => $withdrawal->id,
+                    'user_id' => $withdrawal->user_id,
+                    'amount' => $withdrawal->amount,
+                    'status' => $withdrawal->status,
+                    'bank_name' => $withdrawal->payment_details['bank_name'] ?? null,
+                    'bank_account' => $withdrawal->payment_details['account_number'] ?? null,
+                    'created_at' => $withdrawal->created_at->toISOString(),
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -221,7 +264,7 @@ class WithdrawalController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'transfer_reference' => 'required|string|max:255',
+            'transaction_id' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -232,11 +275,19 @@ class WithdrawalController extends Controller
         }
 
         try {
-            $withdrawal = $this->withdrawalService->completeWithdrawal($id, $request->transfer_reference);
+            $withdrawal = $this->withdrawalService->completeWithdrawal($id, $request->transaction_id ?? '');
 
             return response()->json([
                 'message' => 'Withdrawal completed successfully',
-                'withdrawal' => $withdrawal->load(['user', 'investment', 'transaction'])
+                'data' => [
+                    'id' => $withdrawal->id,
+                    'user_id' => $withdrawal->user_id,
+                    'amount' => $withdrawal->amount,
+                    'status' => $withdrawal->status,
+                    'bank_name' => $withdrawal->payment_details['bank_name'] ?? null,
+                    'bank_account' => $withdrawal->payment_details['account_number'] ?? null,
+                    'created_at' => $withdrawal->created_at->toISOString(),
+                ]
             ]);
 
         } catch (\Exception $e) {
@@ -292,8 +343,10 @@ class WithdrawalController extends Controller
             : $this->withdrawalService->getLawyerAvailableBalance($user->id);
 
         return response()->json([
-            'available_balance' => $availableBalance,
-            'currency' => 'CLP'
+            'data' => [
+                'available_balance' => $availableBalance,
+                'currency' => 'CLP'
+            ]
         ]);
     }
 
@@ -308,6 +361,6 @@ class WithdrawalController extends Controller
 
         $statistics = $this->withdrawalService->getStatistics();
 
-        return response()->json(['statistics' => $statistics]);
+        return response()->json(['data' => $statistics]);
     }
 }
