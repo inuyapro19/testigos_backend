@@ -85,10 +85,24 @@ class AuthController extends Controller
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
+            // Load profiles
+            $user->load(['lawyerProfile', 'investorProfile']);
+
+            // Get abilities before hiding relations
+            $abilities = [
+                'roles' => $user->getRoleNames(),
+                'permissions' => $user->getAllPermissions()->pluck('name'),
+                'primary_role' => $user->getRoleNames()->first()
+            ];
+
+            // Hide roles and permissions relations from JSON output
+            $user->makeHidden(['roles', 'permissions']);
+
             return response()->json([
                 'message' => 'User registered successfully',
-                'user' => $user->load(['lawyerProfile', 'investorProfile']),
-                'token' => $token
+                'user' => $user,
+                'token' => $token,
+                'abilities' => $abilities
             ], 201);
 
         } catch (\Exception $e) {
@@ -131,18 +145,24 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        // Load roles and permissions
-        $user->load(['lawyerProfile', 'investorProfile', 'roles', 'permissions']);
+        // Load only profiles (not roles/permissions to avoid duplication)
+        $user->load(['lawyerProfile', 'investorProfile']);
+
+        // Get abilities before hiding relations
+        $abilities = [
+            'roles' => $user->getRoleNames(),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'primary_role' => $user->getRoleNames()->first()
+        ];
+
+        // Hide roles and permissions relations from JSON output
+        $user->makeHidden(['roles', 'permissions']);
 
         return response()->json([
             'message' => 'Login successful',
             'user' => $user,
             'token' => $token,
-            'abilities' => [
-                'roles' => $user->getRoleNames(),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-                'primary_role' => $user->primary_role
-            ]
+            'abilities' => $abilities
         ]);
     }
 
@@ -163,8 +183,22 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $user->load(['lawyerProfile', 'investorProfile']);
+
+        // Get abilities before hiding relations
+        $abilities = [
+            'roles' => $user->getRoleNames(),
+            'permissions' => $user->getAllPermissions()->pluck('name'),
+            'primary_role' => $user->getRoleNames()->first()
+        ];
+
+        // Hide roles and permissions relations from JSON output
+        $user->makeHidden(['roles', 'permissions']);
+
         return response()->json([
-            'user' => $request->user()->load(['lawyerProfile', 'investorProfile', 'roles', 'permissions'])
+            'user' => $user,
+            'abilities' => $abilities
         ]);
     }
 

@@ -53,6 +53,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/withdrawals/{id}/approve', [App\Http\Controllers\Api\V1\WithdrawalController::class, 'approve']);
         Route::post('/withdrawals/{id}/reject', [App\Http\Controllers\Api\V1\WithdrawalController::class, 'reject']);
         Route::post('/withdrawals/{id}/process', [App\Http\Controllers\Api\V1\WithdrawalController::class, 'process']);
+
         Route::post('/withdrawals/{id}/complete', [App\Http\Controllers\Api\V1\WithdrawalController::class, 'complete']);
         Route::delete('/withdrawals/{id}', [App\Http\Controllers\Api\V1\WithdrawalController::class, 'destroy']);
         Route::get('/withdrawals/balance/available', [App\Http\Controllers\Api\V1\WithdrawalController::class, 'availableBalance']);

@@ -41,6 +41,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'roles',        // Hide Spatie roles relationship (use abilities.roles instead)
+        'permissions',  // Hide Spatie permissions relationship (use abilities.permissions instead)
     ];
 
     /**
