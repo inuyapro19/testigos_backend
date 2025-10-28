@@ -17,7 +17,19 @@ return new class extends Migration
             $table->text('description');
             $table->foreignId('victim_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('lawyer_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->enum('status', ['submitted', 'under_review', 'approved', 'published', 'funded', 'in_progress', 'completed', 'rejected'])->default('submitted');
+            $table->enum('status', [
+                'submitted',
+                'under_admin_review',
+                'approved_for_bidding',
+                'receiving_bids',
+                'bids_closed',
+                'lawyer_assigned',
+                'published',
+                'funded',
+                'in_progress',
+                'completed',
+                'rejected'
+            ])->default('submitted');
             $table->string('category');
             $table->string('company')->nullable();
             $table->decimal('funding_goal', 15, 2)->default(0);

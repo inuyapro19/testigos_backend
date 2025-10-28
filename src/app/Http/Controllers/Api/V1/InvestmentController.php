@@ -283,7 +283,7 @@ class InvestmentController extends Controller
     }
 
     /**
-     * Get investment opportunities (published cases).
+     * Get investment opportunities (published cases with lawyer assigned).
      */
     public function opportunities(Request $request): JsonResponse
     {
@@ -291,9 +291,20 @@ class InvestmentController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        $query = CaseModel::with(['victim', 'lawyer'])
-            ->where('status', 'published')
-            ->whereColumn('current_funding', '<', 'funding_goal');
+        // Solo casos PUBLISHED con abogado asignado
+        $query = CaseModel::forInvestors()
+            ->with([
+                'lawyer.lawyerProfile',
+                'victim:id,name',
+                'winningBid' // Ver la propuesta ganadora
+            ])
+            ->where('current_funding', '<', DB::raw('funding_goal'))
+            ->select([
+                'id', 'title', 'description', 'category', 'company',
+                'victim_id', 'lawyer_id', 'status',
+                'funding_goal', 'current_funding', 'expected_return', 'success_rate',
+                'deadline', 'created_at', 'published_at'
+            ]);
 
         // Apply filters
         if ($request->has('category')) {
@@ -312,7 +323,14 @@ class InvestmentController extends Controller
             $query->where('success_rate', '>=', $request->min_success_rate);
         }
 
-        $opportunities = $query->orderBy('created_at', 'desc')->paginate(12);
+        if ($request->has('search')) {
+            $query->where(function($q) use ($request) {
+                $q->where('title', 'LIKE', '%' . $request->search . '%')
+                  ->orWhere('company', 'LIKE', '%' . $request->search . '%');
+            });
+        }
+
+        $opportunities = $query->orderBy('published_at', 'desc')->paginate(12);
 
         return response()->json($opportunities);
     }

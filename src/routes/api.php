@@ -4,6 +4,14 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
 
+// === MARKETPLACE PÚBLICO (Sin autenticación) ===
+Route::prefix('v1/public')->group(function () {
+    // Marketplace de casos para abogados (sin autenticación)
+    Route::get('/marketplace/cases', [\App\Http\Controllers\Api\V1\PublicMarketplaceController::class, 'index']);
+    Route::get('/marketplace/cases/{id}', [\App\Http\Controllers\Api\V1\PublicMarketplaceController::class, 'show']);
+    Route::get('/stats', [\App\Http\Controllers\Api\V1\PublicMarketplaceController::class, 'platformStats']);
+});
+
 Route::prefix('v1')->group(function () {
     // Public routes
     Route::post('/register', [AuthController::class, 'register']);
@@ -78,6 +86,23 @@ Route::prefix('v1')->group(function () {
         Route::post('/roles/{roleId}/permissions', [App\Http\Controllers\Api\V1\PermissionController::class, 'assignPermissionToRole']);
         Route::delete('/roles/{roleId}/permissions/{permission}', [App\Http\Controllers\Api\V1\PermissionController::class, 'removePermissionFromRole']);
 
+        // === ABOGADOS: Ver casos y gestionar licitaciones ===
+        Route::prefix('lawyer')->middleware('role:lawyer')->group(function () {
+            // Ver casos disponibles para licitar
+            Route::get('/available-cases', [\App\Http\Controllers\Api\V1\LawyerCaseController::class, 'availableCases']);
+            Route::get('/available-cases/{id}', [\App\Http\Controllers\Api\V1\LawyerCaseController::class, 'caseDetails']);
+
+            // Casos asignados (ganados)
+            Route::get('/my-assigned-cases', [\App\Http\Controllers\Api\V1\LawyerCaseController::class, 'myAssignedCases']);
+
+            // Gestión de licitaciones
+            Route::post('/cases/{case}/bid', [\App\Http\Controllers\Api\V1\LawyerBidController::class, 'submitBid']);
+            Route::get('/my-bids', [\App\Http\Controllers\Api\V1\LawyerBidController::class, 'myBids']);
+            Route::get('/my-bids/{bid}', [\App\Http\Controllers\Api\V1\LawyerBidController::class, 'showBid']);
+            Route::put('/my-bids/{bid}', [\App\Http\Controllers\Api\V1\LawyerBidController::class, 'updateBid']);
+            Route::delete('/my-bids/{bid}', [\App\Http\Controllers\Api\V1\LawyerBidController::class, 'withdrawBid']);
+        });
+
         // Admin routes
         Route::middleware('admin')->prefix('admin')->group(function () {
             Route::get('/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard']);
@@ -88,6 +113,26 @@ Route::prefix('v1')->group(function () {
             Route::put('/users/{user}/status', [\App\Http\Controllers\AdminController::class, 'updateUserStatus']);
             Route::put('/lawyers/{lawyer}/verify', [\App\Http\Controllers\AdminController::class, 'verifyLawyer']);
             Route::put('/investors/{investor}/accredit', [\App\Http\Controllers\AdminController::class, 'accreditInvestor']);
+
+            // === GESTIÓN DE CASOS Y LICITACIONES ===
+            // Casos pendientes de revisión
+            Route::get('/cases/pending-review', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'pendingReview']);
+
+            // Aprobar/rechazar casos
+            Route::post('/cases/{case}/approve-for-bidding', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'approveForBidding']);
+            Route::post('/cases/{case}/reject', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'rejectCase']);
+
+            // Gestión de licitaciones
+            Route::get('/cases/{case}/bids', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'getCaseBids']);
+            Route::post('/cases/{case}/close-bidding', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'closeBidding']);
+            Route::post('/bids/{bid}/review', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'reviewBid']);
+
+            // Asignar abogado y publicar para inversores
+            Route::post('/cases/{case}/assign-lawyer/{bid}', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'assignLawyer']);
+            Route::post('/cases/{case}/publish-for-investors', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'publishForInvestors']);
+
+            // Visibilidad en marketplace
+            Route::post('/cases/{case}/toggle-public-marketplace', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'togglePublicMarketplace']);
         });
     });
 });

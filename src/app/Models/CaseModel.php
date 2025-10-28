@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CaseModel extends Model
 {
@@ -44,6 +45,14 @@ class CaseModel extends Model
         'outcome_description',
         'resolution_date',
         'closed_at',
+        // Bidding system fields
+        'is_public_marketplace',
+        'bid_deadline',
+        'admin_review_notes',
+        'reviewed_by',
+        'reviewed_at',
+        'published_by',
+        'published_at',
     ];
 
     /**
@@ -67,6 +76,11 @@ class CaseModel extends Model
         'legal_costs' => 'decimal:2',
         'resolution_date' => 'date',
         'closed_at' => 'datetime',
+        // Bidding system fields
+        'is_public_marketplace' => 'boolean',
+        'bid_deadline' => 'datetime',
+        'reviewed_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
 
     /**
@@ -258,5 +272,92 @@ class CaseModel extends Model
         }
 
         return max(0, $netAmount);
+    }
+
+    /**
+     * Get all lawyer bids for this case.
+     */
+    public function lawyerBids(): HasMany
+    {
+        return $this->hasMany(LawyerBid::class, 'case_id');
+    }
+
+    /**
+     * Get the winning bid (accepted) for this case.
+     */
+    public function winningBid(): HasOne
+    {
+        return $this->hasOne(LawyerBid::class, 'case_id')
+            ->where('status', 'accepted');
+    }
+
+    /**
+     * Get the admin who reviewed this case.
+     */
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    /**
+     * Get the admin who published this case for investors.
+     */
+    public function publisher(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'published_by');
+    }
+
+    /**
+     * Scope a query to only include cases open for bidding.
+     */
+    public function scopeOpenForBidding($query)
+    {
+        return $query->whereIn('status', ['approved_for_bidding', 'receiving_bids'])
+            ->where(function($q) {
+                $q->whereNull('bid_deadline')
+                  ->orWhere('bid_deadline', '>', now());
+            });
+    }
+
+    /**
+     * Scope a query to only include cases in public marketplace.
+     */
+    public function scopePublicMarketplace($query)
+    {
+        return $query->where('is_public_marketplace', true)
+            ->openForBidding();
+    }
+
+    /**
+     * Scope a query to only include cases published for investors.
+     */
+    public function scopeForInvestors($query)
+    {
+        return $query->where('status', 'published')
+            ->whereNotNull('lawyer_id');
+    }
+
+    /**
+     * Check if case is open for bidding.
+     */
+    public function isOpenForBidding(): bool
+    {
+        if (!in_array($this->status, ['approved_for_bidding', 'receiving_bids'])) {
+            return false;
+        }
+
+        if ($this->bid_deadline && $this->bid_deadline < now()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if case has a lawyer assigned.
+     */
+    public function hasLawyerAssigned(): bool
+    {
+        return !is_null($this->lawyer_id);
     }
 }

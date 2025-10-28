@@ -219,6 +219,66 @@ class DatabaseSeeder extends Seeder
                 ]);
             });
 
+        // Casos en proceso de bidding/licitación
+        // 2 casos aprobados para licitación (recién aprobados, esperando bids)
+        CaseModel::factory(2)->create([
+            'victim_id' => $allVictims->random()->id,
+            'status' => 'approved_for_bidding',
+            'lawyer_id' => null, // Sin abogado asignado aún
+            'funding_goal' => 0,
+            'current_funding' => 0,
+            'success_rate' => null,
+            'expected_return' => null,
+            'deadline' => null,
+        ])->each(function ($case) {
+            CaseDocument::factory(rand(2, 4))->create(['case_id' => $case->id]);
+        });
+
+        // 3 casos recibiendo licitaciones (activamente recibiendo propuestas)
+        CaseModel::factory(3)->create([
+            'victim_id' => $allVictims->random()->id,
+            'status' => 'receiving_bids',
+            'lawyer_id' => null,
+            'funding_goal' => 0,
+            'current_funding' => 0,
+            'success_rate' => null,
+            'expected_return' => null,
+            'deadline' => null,
+        ])->each(function ($case) {
+            CaseDocument::factory(rand(3, 5))->create(['case_id' => $case->id]);
+        });
+
+        // 2 casos con licitaciones cerradas (evaluando propuestas)
+        CaseModel::factory(2)->create([
+            'victim_id' => $allVictims->random()->id,
+            'status' => 'bids_closed',
+            'lawyer_id' => null,
+            'funding_goal' => 0,
+            'current_funding' => 0,
+            'success_rate' => null,
+            'expected_return' => null,
+            'deadline' => null,
+        ])->each(function ($case) {
+            CaseDocument::factory(rand(3, 5))->create(['case_id' => $case->id]);
+        });
+
+        // 2 casos con abogado asignado (listo para publicar a inversores)
+        CaseModel::factory(2)->create([
+            'victim_id' => $allVictims->random()->id,
+            'lawyer_id' => $allLawyers->random()->id,
+            'status' => 'lawyer_assigned',
+            'funding_goal' => rand(5000000, 15000000),
+            'current_funding' => 0,
+            'success_rate' => rand(60, 90),
+            'expected_return' => rand(20, 40),
+            'deadline' => now()->addMonths(rand(2, 6)),
+        ])->each(function ($case) {
+            CaseDocument::factory(rand(3, 5))->create(['case_id' => $case->id]);
+        });
+
+        // Crear licitaciones de abogados para casos en proceso de bidding
+        $this->call(LawyerBidsSeeder::class);
+
         $this->command->info('✅ Base de datos poblada exitosamente!');
         $this->command->info('📧 Usuarios de prueba:');
         $this->command->info('   Admin: admin@testigos.cl / password');

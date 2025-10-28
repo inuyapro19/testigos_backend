@@ -26,6 +26,8 @@ class PermissionsSeeder extends Seeder
         $this->createWithdrawalsPermissions();
         $this->createDashboardPermissions();
         $this->createSystemPermissions();
+        $this->createLawyerBidsPermissions();
+        $this->createMarketplacePermissions();
 
         // Create Roles and Assign Permissions
         $this->createRoles();
@@ -229,6 +231,50 @@ class PermissionsSeeder extends Seeder
         }
     }
 
+    private function createLawyerBidsPermissions(): void
+    {
+        $permissions = [
+            // View permissions
+            'bids.view.all',
+            'bids.view.own',
+            'bids.view.case',
+
+            // CRUD permissions
+            'bids.create',
+            'bids.edit.own',
+            'bids.delete.own',
+            'bids.withdraw.own',
+
+            // Admin actions
+            'bids.review',
+            'bids.approve',
+            'bids.reject',
+            'bids.assign.case',
+
+            // Statistics
+            'bids.statistics.own',
+            'bids.statistics.all',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
+    }
+
+    private function createMarketplacePermissions(): void
+    {
+        $permissions = [
+            // Public marketplace access
+            'marketplace.view.public',
+            'marketplace.view.cases',
+            'marketplace.view.statistics',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
+    }
+
     private function createRoles(): void
     {
         // Admin Role - Full Access
@@ -247,6 +293,13 @@ class PermissionsSeeder extends Seeder
             'cases.documents.upload',
             'cases.documents.view',
             'cases.updates.view',
+
+            // Lawyer Bids - View bids for own cases
+            'bids.view.case',
+
+            // Marketplace - View public cases
+            'marketplace.view.public',
+            'marketplace.view.cases',
 
             // Profile
             'users.view.profile',
@@ -285,6 +338,20 @@ class PermissionsSeeder extends Seeder
             // Investments - View for assigned cases
             'investments.view.case',
 
+            // Lawyer Bids - Full access for own bids
+            'bids.view.own',
+            'bids.view.case',
+            'bids.create',
+            'bids.edit.own',
+            'bids.delete.own',
+            'bids.withdraw.own',
+            'bids.statistics.own',
+
+            // Marketplace - View opportunities
+            'marketplace.view.public',
+            'marketplace.view.cases',
+            'marketplace.view.statistics',
+
             // Profile
             'users.view.profile',
             'users.edit.own.profile',
@@ -320,6 +387,11 @@ class PermissionsSeeder extends Seeder
             'investments.cancel.own',
             'investments.statistics.own',
             'investments.opportunities',
+
+            // Marketplace - View public cases and statistics
+            'marketplace.view.public',
+            'marketplace.view.cases',
+            'marketplace.view.statistics',
 
             // Profile
             'users.view.profile',
