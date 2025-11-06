@@ -31,11 +31,48 @@ class LawyerBidController extends Controller
             'similar_cases_description' => 'nullable|string',
             'attachments' => 'nullable|array',
             'attachments.*' => 'url',
+        ], [
+            'funding_goal_proposed.required' => 'El monto de financiamiento propuesto es requerido',
+            'funding_goal_proposed.numeric' => 'El monto de financiamiento debe ser un número',
+            'funding_goal_proposed.min' => 'El monto de financiamiento debe ser al menos $100.000',
+            'expected_return_percentage.required' => 'El porcentaje de retorno esperado es requerido',
+            'expected_return_percentage.numeric' => 'El porcentaje de retorno debe ser un número',
+            'expected_return_percentage.min' => 'El porcentaje de retorno debe ser al menos 0',
+            'expected_return_percentage.max' => 'El porcentaje de retorno no puede ser mayor a 100',
+            'lawyer_evaluation_fee.numeric' => 'La tarifa de evaluación debe ser un número',
+            'lawyer_evaluation_fee.min' => 'La tarifa de evaluación debe ser al menos 0',
+            'lawyer_success_fee_percentage.numeric' => 'El porcentaje de éxito debe ser un número',
+            'lawyer_success_fee_percentage.min' => 'El porcentaje de éxito debe ser al menos 0',
+            'lawyer_success_fee_percentage.max' => 'El porcentaje de éxito no puede ser mayor a 50',
+            'lawyer_fixed_fee.numeric' => 'La tarifa fija debe ser un número',
+            'lawyer_fixed_fee.min' => 'La tarifa fija debe ser al menos 0',
+            'success_probability.required' => 'La probabilidad de éxito es requerida',
+            'success_probability.numeric' => 'La probabilidad de éxito debe ser un número',
+            'success_probability.min' => 'La probabilidad de éxito debe ser al menos 0',
+            'success_probability.max' => 'La probabilidad de éxito no puede ser mayor a 100',
+            'estimated_duration_months.required' => 'La duración estimada es requerida',
+            'estimated_duration_months.integer' => 'La duración estimada debe ser un número entero',
+            'estimated_duration_months.min' => 'La duración estimada debe ser al menos 1 mes',
+            'estimated_duration_months.max' => 'La duración estimada no puede ser mayor a 60 meses',
+            'legal_strategy.required' => 'La estrategia legal es requerida',
+            'legal_strategy.string' => 'La estrategia legal debe ser texto',
+            'legal_strategy.min' => 'La estrategia legal debe tener al menos 200 caracteres',
+            'experience_summary.required' => 'El resumen de experiencia es requerido',
+            'experience_summary.string' => 'El resumen de experiencia debe ser texto',
+            'experience_summary.min' => 'El resumen de experiencia debe tener al menos 100 caracteres',
+            'why_best_candidate.required' => 'Debes explicar por qué eres el mejor candidato',
+            'why_best_candidate.string' => 'La explicación debe ser texto',
+            'why_best_candidate.min' => 'La explicación de por qué eres el mejor candidato debe tener al menos 100 caracteres',
+            'similar_cases_won.integer' => 'El número de casos similares ganados debe ser un número entero',
+            'similar_cases_won.min' => 'El número de casos similares ganados debe ser al menos 0',
+            'similar_cases_description.string' => 'La descripción de casos similares debe ser texto',
+            'attachments.array' => 'Los adjuntos deben ser un arreglo',
+            'attachments.*.url' => 'Cada adjunto debe ser una URL válida',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -73,11 +110,6 @@ class LawyerBidController extends Controller
                 'attachments' => $request->attachments,
                 'status' => 'submitted',
             ]);
-
-            // Actualizar estado del caso si es primera licitación
-            if ($case->status === 'approved_for_bidding') {
-                $case->update(['status' => 'receiving_bids']);
-            }
 
             // TODO: Notificar admin
             // event(new BidSubmitted($bid));
@@ -175,11 +207,41 @@ class LawyerBidController extends Controller
             'similar_cases_description' => 'nullable|string',
             'attachments' => 'nullable|array',
             'attachments.*' => 'url',
+        ], [
+            'funding_goal_proposed.numeric' => 'El monto de financiamiento debe ser un número',
+            'funding_goal_proposed.min' => 'El monto de financiamiento debe ser al menos $100.000',
+            'expected_return_percentage.numeric' => 'El porcentaje de retorno debe ser un número',
+            'expected_return_percentage.min' => 'El porcentaje de retorno debe ser al menos 0',
+            'expected_return_percentage.max' => 'El porcentaje de retorno no puede ser mayor a 100',
+            'lawyer_evaluation_fee.numeric' => 'La tarifa de evaluación debe ser un número',
+            'lawyer_evaluation_fee.min' => 'La tarifa de evaluación debe ser al menos 0',
+            'lawyer_success_fee_percentage.numeric' => 'El porcentaje de éxito debe ser un número',
+            'lawyer_success_fee_percentage.min' => 'El porcentaje de éxito debe ser al menos 0',
+            'lawyer_success_fee_percentage.max' => 'El porcentaje de éxito no puede ser mayor a 50',
+            'lawyer_fixed_fee.numeric' => 'La tarifa fija debe ser un número',
+            'lawyer_fixed_fee.min' => 'La tarifa fija debe ser al menos 0',
+            'success_probability.numeric' => 'La probabilidad de éxito debe ser un número',
+            'success_probability.min' => 'La probabilidad de éxito debe ser al menos 0',
+            'success_probability.max' => 'La probabilidad de éxito no puede ser mayor a 100',
+            'estimated_duration_months.integer' => 'La duración estimada debe ser un número entero',
+            'estimated_duration_months.min' => 'La duración estimada debe ser al menos 1 mes',
+            'estimated_duration_months.max' => 'La duración estimada no puede ser mayor a 60 meses',
+            'legal_strategy.string' => 'La estrategia legal debe ser texto',
+            'legal_strategy.min' => 'La estrategia legal debe tener al menos 200 caracteres',
+            'experience_summary.string' => 'El resumen de experiencia debe ser texto',
+            'experience_summary.min' => 'El resumen de experiencia debe tener al menos 100 caracteres',
+            'why_best_candidate.string' => 'La explicación debe ser texto',
+            'why_best_candidate.min' => 'La explicación de por qué eres el mejor candidato debe tener al menos 100 caracteres',
+            'similar_cases_won.integer' => 'El número de casos similares ganados debe ser un número entero',
+            'similar_cases_won.min' => 'El número de casos similares ganados debe ser al menos 0',
+            'similar_cases_description.string' => 'La descripción de casos similares debe ser texto',
+            'attachments.array' => 'Los adjuntos deben ser un arreglo',
+            'attachments.*.url' => 'Cada adjunto debe ser una URL válida',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }

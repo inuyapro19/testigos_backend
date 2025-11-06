@@ -23,7 +23,7 @@ class StoreInvestmentRequest extends FormRequest
     {
         return [
             'case_id' => 'required|exists:cases,id',
-            'amount' => 'required|numeric|min:50000',
+            'amount' => 'required|numeric|min:10000',
             'payment_method' => 'required|in:webpay,transferencia,khipu',
             'transaction_id' => 'nullable|string',
         ];
@@ -39,7 +39,7 @@ class StoreInvestmentRequest extends FormRequest
             'case_id.exists' => 'El caso seleccionado no existe',
             'amount.required' => 'El monto es requerido',
             'amount.numeric' => 'El monto debe ser un número',
-            'amount.min' => 'El monto mínimo de inversión es $50.000',
+            'amount.min' => 'El monto mínimo de inversión es $10.000',
             'payment_method.required' => 'El método de pago es requerido',
             'payment_method.in' => 'El método de pago debe ser: webpay, transferencia o khipu',
         ];

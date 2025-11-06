@@ -123,8 +123,11 @@ Route::prefix('v1')->group(function () {
             Route::post('/cases/{case}/reject', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'rejectCase']);
 
             // Gestión de licitaciones
+            Route::get('/bids', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'getAllBids']);
+            Route::get('/bids/statistics', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'getBidStatistics']);
             Route::get('/cases/{case}/bids', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'getCaseBids']);
             Route::post('/cases/{case}/close-bidding', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'closeBidding']);
+            Route::post('/cases/{case}/reopen-bidding', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'reopenBidding']);
             Route::post('/bids/{bid}/review', [\App\Http\Controllers\Api\V1\AdminCaseController::class, 'reviewBid']);
 
             // Asignar abogado y publicar para inversores

@@ -39,11 +39,50 @@ class AuthController extends Controller
             'minimum_investment' => 'nullable|numeric|min:0',
             'maximum_investment' => 'nullable|numeric|min:0',
             'investment_preferences' => 'nullable|array',
+        ], [
+            'name.required' => 'El nombre es requerido',
+            'name.string' => 'El nombre debe ser texto',
+            'name.max' => 'El nombre no puede tener más de 255 caracteres',
+            'email.required' => 'El email es requerido',
+            'email.string' => 'El email debe ser texto',
+            'email.email' => 'El email debe ser una dirección válida',
+            'email.max' => 'El email no puede tener más de 255 caracteres',
+            'email.unique' => 'Este email ya está registrado',
+            'password.required' => 'La contraseña es requerida',
+            'password.string' => 'La contraseña debe ser texto',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres',
+            'rut.required' => 'El RUT es requerido',
+            'rut.string' => 'El RUT debe ser texto',
+            'rut.unique' => 'Este RUT ya está registrado',
+            'birth_date.date' => 'La fecha de nacimiento debe ser una fecha válida',
+            'address.required' => 'La dirección es requerida',
+            'address.string' => 'La dirección debe ser texto',
+            'phone.required' => 'El teléfono es requerido',
+            'phone.string' => 'El teléfono debe ser texto',
+            'role.required' => 'El rol es requerido',
+            'role.in' => 'El rol debe ser: víctima, abogado o inversionista',
+            'license_number.required_if' => 'El número de licencia es requerido para abogados',
+            'license_number.string' => 'El número de licencia debe ser texto',
+            'license_number.unique' => 'Este número de licencia ya está registrado',
+            'law_firm.string' => 'El nombre del estudio debe ser texto',
+            'specializations.required_if' => 'Las especializaciones son requeridas para abogados',
+            'specializations.array' => 'Las especializaciones deben ser un arreglo',
+            'years_experience.required_if' => 'Los años de experiencia son requeridos para abogados',
+            'years_experience.integer' => 'Los años de experiencia deben ser un número entero',
+            'years_experience.min' => 'Los años de experiencia deben ser al menos 0',
+            'bio.string' => 'La biografía debe ser texto',
+            'investor_type.required_if' => 'El tipo de inversionista es requerido',
+            'investor_type.in' => 'El tipo de inversionista debe ser: individual o institucional',
+            'minimum_investment.numeric' => 'La inversión mínima debe ser un número',
+            'minimum_investment.min' => 'La inversión mínima debe ser al menos 0',
+            'maximum_investment.numeric' => 'La inversión máxima debe ser un número',
+            'maximum_investment.min' => 'La inversión máxima debe ser al menos 0',
+            'investment_preferences.array' => 'Las preferencias de inversión deben ser un arreglo',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -121,11 +160,15 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required',
+        ], [
+            'email.required' => 'El email es requerido',
+            'email.email' => 'El email debe ser una dirección válida',
+            'password.required' => 'La contraseña es requerida',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -215,11 +258,23 @@ class AuthController extends Controller
             'phone' => 'sometimes|string',
             'address' => 'sometimes|string',
             'avatar' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'name.string' => 'El nombre debe ser texto',
+            'name.max' => 'El nombre no puede tener más de 255 caracteres',
+            'email.string' => 'El email debe ser texto',
+            'email.email' => 'El email debe ser una dirección válida',
+            'email.max' => 'El email no puede tener más de 255 caracteres',
+            'email.unique' => 'Este email ya está en uso',
+            'phone.string' => 'El teléfono debe ser texto',
+            'address.string' => 'La dirección debe ser texto',
+            'avatar.image' => 'El avatar debe ser una imagen',
+            'avatar.mimes' => 'El avatar debe ser un archivo de tipo: jpeg, png, jpg, gif',
+            'avatar.max' => 'El avatar no puede ser mayor a 2048 kilobytes',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }

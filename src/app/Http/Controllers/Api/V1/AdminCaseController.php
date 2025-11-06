@@ -35,11 +35,18 @@ class AdminCaseController extends Controller
             'bid_deadline' => 'required|date|after:now',
             'is_public_marketplace' => 'required|boolean',
             'admin_notes' => 'nullable|string',
+        ], [
+            'bid_deadline.required' => 'La fecha límite para licitar es requerida',
+            'bid_deadline.date' => 'La fecha límite debe ser una fecha válida',
+            'bid_deadline.after' => 'La fecha límite debe ser posterior a la fecha actual',
+            'is_public_marketplace.required' => 'La visibilidad en marketplace es requerida',
+            'is_public_marketplace.boolean' => 'La visibilidad en marketplace debe ser verdadero o falso',
+            'admin_notes.string' => 'Las notas del administrador deben ser texto',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -85,11 +92,15 @@ class AdminCaseController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'rejection_reason' => 'required|string|min:20',
+        ], [
+            'rejection_reason.required' => 'La razón de rechazo es requerida',
+            'rejection_reason.string' => 'La razón de rechazo debe ser texto',
+            'rejection_reason.min' => 'La razón de rechazo debe tener al menos 20 caracteres',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -128,7 +139,14 @@ class AdminCaseController extends Controller
         $case = CaseModel::with([
             'lawyerBids' => function($q) {
                 $q->with(['lawyer.lawyerProfile', 'reviewer:id,name,email'])
-                  ->orderByRaw("FIELD(status, 'submitted', 'under_review', 'accepted', 'rejected', 'withdrawn')")
+                  ->orderByRaw("CASE
+                      WHEN status = 'submitted' THEN 1
+                      WHEN status = 'under_review' THEN 2
+                      WHEN status = 'accepted' THEN 3
+                      WHEN status = 'rejected' THEN 4
+                      WHEN status = 'withdrawn' THEN 5
+                      ELSE 6
+                  END")
                   ->orderBy('admin_score', 'desc')
                   ->orderBy('created_at', 'desc');
             },
@@ -145,6 +163,7 @@ class AdminCaseController extends Controller
         ];
 
         return response()->json([
+            'data' => $case->lawyerBids,
             'case' => $case,
             'bids_summary' => $bidsSummary
         ]);
@@ -157,7 +176,7 @@ class AdminCaseController extends Controller
     {
         $case = CaseModel::findOrFail($caseId);
 
-        if ($case->status !== 'receiving_bids') {
+        if (!in_array($case->status, ['approved_for_bidding', 'receiving_bids'])) {
             return response()->json([
                 'message' => 'El caso no está recibiendo licitaciones. Estado actual: ' . $case->status
             ], 400);
@@ -172,6 +191,27 @@ class AdminCaseController extends Controller
     }
 
     /**
+     * Reabrir licitación para recibir más ofertas.
+     */
+    public function reopenBidding(Request $request, $caseId): JsonResponse
+    {
+        $case = CaseModel::findOrFail($caseId);
+
+        if ($case->status !== 'bids_closed') {
+            return response()->json([
+                'message' => 'Solo se pueden reabrir licitaciones cerradas. Estado actual: ' . $case->status
+            ], 400);
+        }
+
+        $case->update(['status' => 'approved_for_bidding']);
+
+        return response()->json([
+            'message' => 'Licitación reabierta. Los abogados pueden enviar nuevas propuestas',
+            'data' => $case
+        ]);
+    }
+
+    /**
      * Evaluar una licitación específica.
      */
     public function reviewBid(Request $request, $bidId): JsonResponse
@@ -179,11 +219,17 @@ class AdminCaseController extends Controller
         $validator = Validator::make($request->all(), [
             'admin_score' => 'required|integer|min:1|max:10',
             'admin_feedback' => 'nullable|string',
+        ], [
+            'admin_score.required' => 'La puntuación del administrador es requerida',
+            'admin_score.integer' => 'La puntuación debe ser un número entero',
+            'admin_score.min' => 'La puntuación mínima es 1',
+            'admin_score.max' => 'La puntuación máxima es 10',
+            'admin_feedback.string' => 'El feedback del administrador debe ser texto',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -357,5 +403,85 @@ class AdminCaseController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Listar todas las licitaciones con filtros opcionales.
+     */
+    public function getAllBids(Request $request): JsonResponse
+    {
+        $query = LawyerBid::with([
+            'lawyer.lawyerProfile',
+            'case:id,title,status,funding_goal,current_funding',
+            'reviewer:id,name,email'
+        ]);
+
+        // Filtrar por caso específico
+        if ($request->has('case_id')) {
+            $query->where('case_id', $request->case_id);
+        }
+
+        // Filtrar por abogado específico
+        if ($request->has('lawyer_id')) {
+            $query->where('lawyer_id', $request->lawyer_id);
+        }
+
+        // Filtrar por estado
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Ordenar por fecha de creación (más recientes primero)
+        $query->orderBy('created_at', 'desc');
+
+        // Paginación
+        $perPage = $request->get('per_page', 20);
+        $bids = $query->paginate($perPage);
+
+        return response()->json([
+            'data' => $bids->items(),
+            'meta' => [
+                'current_page' => $bids->currentPage(),
+                'last_page' => $bids->lastPage(),
+                'per_page' => $bids->perPage(),
+                'total' => $bids->total(),
+            ]
+        ]);
+    }
+
+    /**
+     * Obtener estadísticas generales de licitaciones.
+     */
+    public function getBidStatistics(Request $request): JsonResponse
+    {
+        $totalBids = LawyerBid::count();
+        $submittedBids = LawyerBid::where('status', 'submitted')->count();
+        $underReviewBids = LawyerBid::where('status', 'under_review')->count();
+        $acceptedBids = LawyerBid::where('status', 'accepted')->count();
+        $rejectedBids = LawyerBid::where('status', 'rejected')->count();
+        $withdrawnBids = LawyerBid::where('status', 'withdrawn')->count();
+
+        // Calcular tasa de aceptación
+        $acceptanceRate = $totalBids > 0
+            ? round(($acceptedBids / $totalBids) * 100, 2)
+            : 0;
+
+        // Calcular puntuación promedio de admin
+        $averageAdminScore = LawyerBid::whereNotNull('admin_score')
+            ->avg('admin_score');
+        $averageAdminScore = $averageAdminScore ? round($averageAdminScore, 2) : null;
+
+        return response()->json([
+            'data' => [
+                'total_bids' => $totalBids,
+                'submitted_bids' => $submittedBids,
+                'under_review_bids' => $underReviewBids,
+                'accepted_bids' => $acceptedBids,
+                'rejected_bids' => $rejectedBids,
+                'withdrawn_bids' => $withdrawnBids,
+                'acceptance_rate' => $acceptanceRate,
+                'average_admin_score' => $averageAdminScore,
+            ]
+        ]);
     }
 }

@@ -56,13 +56,20 @@ class InvestmentController extends Controller
 
         $validator = Validator::make($request->all(), [
             'case_id' => 'required|exists:cases,id',
-            'amount' => 'required|numeric|min:1000000', // Minimum 1M CLP
+            'amount' => 'required|numeric|min:10000', // Minimum 10K CLP
             'payment_data' => 'nullable|array',
+        ], [
+            'case_id.required' => 'El caso es requerido',
+            'case_id.exists' => 'El caso seleccionado no existe',
+            'amount.required' => 'El monto es requerido',
+            'amount.numeric' => 'El monto debe ser un número',
+            'amount.min' => 'El monto mínimo de inversión es $10.000',
+            'payment_data.array' => 'Los datos de pago deben ser un arreglo',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }
@@ -202,11 +209,17 @@ class InvestmentController extends Controller
             'status' => 'required|in:pending,confirmed,active,completed,cancelled',
             'actual_return' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+        ], [
+            'status.required' => 'El estado es requerido',
+            'status.in' => 'El estado debe ser: pendiente, confirmado, activo, completado o cancelado',
+            'actual_return.numeric' => 'El retorno real debe ser un número',
+            'actual_return.min' => 'El retorno real debe ser al menos 0',
+            'notes.string' => 'Las notas deben ser texto',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation failed',
+                'message' => 'Error de validación',
                 'errors' => $validator->errors()
             ], 422);
         }

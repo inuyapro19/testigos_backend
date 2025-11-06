@@ -17,7 +17,7 @@ class InvestmentData extends Data
         #[Required]
         public int $investor_id,
         
-        #[Required, Numeric, Min(1000000)]
+        #[Required, Numeric, Min(10000)]
         public float $amount,
         
         #[Required, Numeric]

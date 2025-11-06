@@ -63,6 +63,8 @@ enum CaseStatus: string
             ]),
             self::APPROVED_FOR_BIDDING => in_array($status, [
                 self::RECEIVING_BIDS,
+                self::BIDS_CLOSED,
+                self::LAWYER_ASSIGNED,
                 self::REJECTED
             ]),
             self::RECEIVING_BIDS => in_array($status, [

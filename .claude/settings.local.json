@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//d/nuevo proyectos/testigos_frontend/src/api/**)",
+      "Read(//d/nuevo proyectos/testigos_frontend/src/routes/**)",
+      "Read(//d/nuevo proyectos/testigos_frontend/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
